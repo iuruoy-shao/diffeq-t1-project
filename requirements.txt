@@ -2,3 +2,5 @@ numpy
 pillow
 scipy
 matplotlib
+streamlit
+protobuf~=3.19.0
