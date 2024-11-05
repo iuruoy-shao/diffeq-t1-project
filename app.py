@@ -173,7 +173,7 @@ with config:
                     axes.append(tuple(eqs))
 
                 generated_image = generate_image(*tuple(axes))
-                mse = np.sum((image - generated_image) ** 2)
+                mse = np.sum((image - generated_image) ** 2) / image.size
                 if not lowest_mse:
                     lowest_mse = mse
                     max_error = mse
