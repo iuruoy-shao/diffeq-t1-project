@@ -140,58 +140,61 @@ with config:
                         eq.constants = constants
                         solution.latex(display_solution(eq, constants, ind, dep))
                         eqs[f'{dep}{ind}'] = (eq,)
+    with image:
+        generated_image = generate_image(*tuple(eqs.values()))
+        st.image(generated_image, use_column_width=True)
 
-    with gen:
-        max_time = 5 * 60
-        test_image = st.file_uploader("Upload a gradient image", type=['png', 'jpg', 'jpeg'])
-        if test_image:
-            time_bar = st.progress(0, text="Time elapsed")
-            error_bar = st.progress(0, text="Mean squared error")
+with gen:
+    max_time = 5 * 60
+    test_image = st.file_uploader("Upload a gradient image", type=['png', 'jpg', 'jpeg'])
+    if test_image:
+        time_bar = st.progress(0, text="Time elapsed")
+        error_bar = st.progress(0, text="Mean squared error")
 
-            image = Image.open(test_image)
-            image = image.resize((180, 180))
-            image = image.crop((0,0,180,180))
-            image = np.asarray(image, dtype=float)
+        image = Image.open(test_image)
+        image = image.resize((180, 180))
+        image = image.crop((0,0,180,180))
+        image = np.asarray(image, dtype=float)
 
-            og, generated = st.columns(2)
+        og, generated = st.columns(2)
 
-            with og:
-                st.image(image/255, use_column_width=True)
-            lowest_mse = None
-            start_time = time.time()
+        with og:
+            st.image(image/255, use_column_width=True)
+        lowest_mse = None
+        start_time = time.time()
 
-            with generated:
-                generated_image_display = st.empty()
-                error_display = st.empty()
+        with generated:
+            generated_image_display = st.empty()
+            error_display = st.empty()
 
-            while True:
-                constants = tuple([
-                    {
-                        'coefficients': np.random.rand(3) * 10,
-                        'constants': np.random.rand(3),
-                    } for _ in range(10)
-                ] for _ in range(6))
+        while True:
+            constants = tuple([
+                {
+                    'coefficients': np.random.rand(3) * 10,
+                    'constants': np.random.rand(3),
+                } for _ in range(3)
+            ] for _ in range(6))
 
-                axes = []
-                for axis in constants:
-                    eqs = []
-                    for constant in axis:
-                        eq = EulerCauchy(constant['coefficients'])
-                        eq.constants = constant['constants']
-                        eqs.append(eq)
-                    axes.append(tuple(eqs))
+            axes = []
+            for axis in constants:
+                eqs = []
+                for constant in axis:
+                    eq = EulerCauchy(constant['coefficients'])
+                    eq.constants = constant['constants']
+                    eqs.append(eq)
+                axes.append(tuple(eqs))
 
-                generated_image = generate_image(*tuple(axes))
-                mse = np.sum((image - generated_image) ** 2) / image.size
-                if not lowest_mse:
-                    lowest_mse = mse
-                    max_error = mse
-                elif mse < lowest_mse:
-                    error_bar.progress(lowest_mse / max_error, text="Mean squared error")
-                    lowest_mse = mse
-                    generated_image_display.image(generated_image, use_column_width=True)
-                    error_display.write(f"Mean squared error: {int(mse)}")
+            generated_image = generate_image(*tuple(axes))
+            mse = np.sum((image - generated_image) ** 2) / image.size
+            if not lowest_mse:
+                lowest_mse = mse
+                max_error = mse
+            elif mse < lowest_mse:
+                error_bar.progress(lowest_mse / max_error, text="Mean squared error")
+                lowest_mse = mse
+                generated_image_display.image(generated_image, use_column_width=True)
+                error_display.write(f"Mean squared error: {int(mse)}")
 
-                if time.time() - start_time > max_time:
-                    break
-                time_bar.progress((time.time() - start_time)/max_time, text="Time elapsed")
+            if time.time() - start_time > max_time:
+                break
+            time_bar.progress((time.time() - start_time)/max_time, text="Time elapsed")
